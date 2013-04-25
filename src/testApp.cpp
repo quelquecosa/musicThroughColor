@@ -18,6 +18,9 @@ void testApp::setup() {
     bri.allocate(w, h);
     filtered.allocate(w, h);
     
+    slowYourRoll = 0;
+    velocitySmoothed = 0;
+    
     sender.setup("127.0.0.1", 7400);
 }
 
@@ -54,17 +57,31 @@ void testApp::update(){
         //run the contour finder on the filtered image to find blobs with a certain hue
         contours.findContours(filtered, 50, w*h/2, 1, false);
         
+        
+        //VELOCITY
+        posDiffX = (v1.x - pos.x);
+        posDiffY = (v1.y - pos.y);
+        velocity = sqrt( powf(posDiffX,2) + powf(posDiffY,2));
+        
+        if (velocity < 50){
+            
+            velocitySmoothed = 0.98 * velocitySmoothed + 0.02 * velocity;
+        }
+        
+        //velocitySmoothed = 0.98 * velocitySmoothed + 0.02 * velocity;
+        
+        
+        v1.set(pos.x, pos.y);
+        
+        
+        
     }
     
-    //VELOCITY
-    posDiffX = (v1.x - pos.x);
-    posDiffY = (v1.y - pos.y);
-    velocity = sqrt(posDiffX^2 + posDiffY^2);
     
     
     //COLOR - Checking to see which color is active (change this, clicking shouldnt have to happen)
-    if (findHue > 135 && findHue < 150){
-        activeColor = "purple";
+    if (findHue > 160 && findHue < 180){
+        activeColor = "pink";
         cout << "velocity is " << velocity << endl;
         cout << "active color is " << activeColor << endl;
     
@@ -74,19 +91,24 @@ void testApp::update(){
         }
    
     //if the movement on the x axis of the colored blob is greater than 1 unit (in either direction), then:
-        if(velocity > 1 && velocity != NAN){
+        if(velocitySmoothed > 5){
             
             //SEND to OSC the activeColor and posDiffX (velocity on the x axis) (i know theres a way to calculate velocity of vx + vy)
-            ofxOscMessage x;
-            x.setAddress("/playtone");
-            x.addFloatArg(velocity);
-            x.addStringArg(activeColor);
-            sender.sendMessage(x);
-            cout << "message sent" << endl;
-            ofSleepMillis(200);
+            
+            if (slowYourRoll % 20 == 0){
+            
+                ofxOscMessage x;
+                x.setAddress("/playtone");
+                x.addFloatArg(velocity);
+                x.addStringArg(activeColor);
+                sender.sendMessage(x);
+                cout << "message sent" << endl;
+                //ofSleepMillis(200);
+            }
+            slowYourRoll++;
         }
     }    
-    v1.set(pos.x);
+    
 }
 
 //--------------------------------------------------------------
@@ -122,6 +144,11 @@ void testApp::draw(){
         string yposition = "yPos: "+ofToString(pos.y, 15);
         ofDrawBitmapString(yposition, 100, 125);
     }
+    
+    
+    ofDrawBitmapStringHighlight("velocity:  " + ofToString(velocity), 800, ofGetHeight()-120);
+    
+    ofDrawBitmapStringHighlight("velocitySmoothed:  " + ofToString(velocitySmoothed), 800, ofGetHeight()-100);
 }
 
 //--------------------------------------------------------------

@@ -46,15 +46,15 @@ while ( true )
         
         // getFloat fetches the expected float (as indicated by "f")
         oe.getFloat() => velocity;
-        velocity * 6 => reverb;
+        velocity * 2 => reverb;
         reverb => r.mix;
-        //<<< reverb >>>;
+        <<< reverb >>>;
         
         oe.getString() => color; 
         <<< color >>> ;
         
         // set play pointer to beginning
-        587 => osc.freq;
+        500 => osc.freq;
         //color => osc.freq;
         
         //hook up the oscillator to a reverb (start playing)

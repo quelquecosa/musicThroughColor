@@ -34,6 +34,8 @@ public:
     int posDiffX;
     int posDiffY;
     
+    int slowYourRoll;
+    
     ofVec3f v1;
     ofxOscSender sender;
     
@@ -41,6 +43,9 @@ public:
     string activeColor; //which color is being tracked?
     int activeColorVel; //what is the velocity of the movement of color being tracked?
     float velocity;
+    float velocitySmoothed;
+    
+    
 };
 
 #endif
